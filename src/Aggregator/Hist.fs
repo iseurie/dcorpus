@@ -34,13 +34,14 @@ module History =
                 |> Async.AwaitTask
 
             let messageStreams =
-                chans |> Seq.map (
-                    fun (ch:RestTextChannel) ->
-                        let n, dir = spec.limit, spec.direction
-                        match spec.relativeTo with
-                            | Spec.First -> ch.GetMessagesAsync(int n, opt)
-                            | Spec.Last -> ch.GetMessagesAsync(0UL, dir, int n, opt)
-                            | Spec.From id -> ch.GetMessagesAsync(id, dir, int n, opt))
+                let chf (ch:RestTextChannel) =
+                    let n, dir = spec.limit, spec.direction
+                    match spec.relativeTo with
+                        | Spec.First -> ch.GetMessagesAsync(System.UInt64.MaxValue, dir, int n, opt)
+                        | Spec.Last -> ch.GetMessagesAsync(0UL, dir, int n, opt)
+                        | Spec.From id -> ch.GetMessagesAsync(id, dir, int n, opt)
+
+                Seq.map chf <| chans
 
             let! messagePool =
                 messageStreams
